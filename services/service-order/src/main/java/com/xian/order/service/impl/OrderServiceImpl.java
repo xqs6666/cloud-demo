@@ -1,6 +1,7 @@
 package com.xian.order.service.impl;
 
 import com.xian.order.bean.Order;
+import com.xian.order.feign.ProductFeignClient;
 import com.xian.order.service.OrderService;
 import com.xian.product.bean.Product;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,8 @@ public class OrderServiceImpl implements OrderService {
     RestTemplate restTemplate;
     @Autowired
     LoadBalancerClient loadBalancerClient;
+    @Autowired
+    ProductFeignClient productFeignClient;
 
     @Override
     public Order createOrder(Long productId, Long userId) {
@@ -32,7 +35,8 @@ public class OrderServiceImpl implements OrderService {
         order.setId(1L);
         order.setUserId(userId);
         //TODO 远程查询商品列表
-        Product product = getProductFromRemoteWithLoadBalancerAnnotation(productId);
+        //Product product = getProductFromRemoteWithLoadBalancerAnnotation(productId);
+        Product product = productFeignClient.getProductInfo(productId);
         order.setProductList(Arrays.asList(product));
         order.setAddress("北京");
         order.setNickName("小明");
@@ -55,7 +59,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("url:{} product:{}",url,product);
         return product;
     }
-
 //    private Product getProductFromRemote(Long productId) {
 //        List<ServiceInstance> instances = discoveryClient.getInstances("service-product");
 //        ServiceInstance serviceInstance = instances.get(0);
